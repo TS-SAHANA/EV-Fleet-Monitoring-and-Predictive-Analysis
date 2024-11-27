@@ -11,9 +11,10 @@ import pickle
 import pandas as pd
 import numpy as np 
 import os
-import requests
 from dotenv import load_dotenv
 
+load_dotenv()  # Load environment variables from .env file
+brevo_api_key = os.environ.get("BREVO_API_KEY")
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users1.db'
@@ -89,33 +90,22 @@ class ResetPasswordForm(FlaskForm):
     confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Reset Password')
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Function to send email using Sendinblue
 def send_email(to_email, subject, content):
     url = "https://api.sendinblue.com/v3/smtp/email"
-    
-    # Retrieve the Sendinblue API key from environment variable
-    api_key = os.getenv("SENDINBLUE_API_KEY")
-    
-    # If the API key is not found, raise an error
-    if not api_key:
+    if not brevo_api_key:
         raise ValueError("Sendinblue API key not found in environment variables.")
-
+   
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
-        "api-key": api_key  # Use the API key from environment variables
+        "api-key": brevo_api_key  # Replace with your Sendinblue API key
     }
-
     data = {
-        "sender": {"email": "sahanats4@gmail.com"},  # Replace with your sender email
+        "sender": {"email": "dineshtippavarjula@gmail.com"},  # Replace with your sender email
         "to": [{"email": to_email}],
         "subject": subject,
         "textContent": content
     }
-
     response = requests.post(url, headers=headers, json=data)
     return response.json()
 
@@ -459,7 +449,9 @@ def home():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000)) 
     with app.app_context():  # Make sure the app context is available for database queries
         db.create_all()  # Create database tables
+        # create_random_users()  # Add 50 random users
         # export_users_to_csv()  # Export users to CSV
-app.run(debug=True)
+    app.run(host="0.0.0.0", port=port,debug=True)
