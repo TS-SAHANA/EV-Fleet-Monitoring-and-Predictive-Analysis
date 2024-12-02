@@ -4,6 +4,54 @@
     <meta charset="UTF-8">
     <title>Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Include zxcvbn library -->
+    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+    <style>
+        /* Style the password strength indicator container */
+        #password-strength {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 320px;
+            font-weight: bold;
+            font-size: 12px;
+            display: none;
+        }
+
+        /* Color coding for different strength levels */
+        .very-weak {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .weak {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .fair {
+            background-color: #fff3e6;
+            color: #856404;
+        }
+
+        .strong {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .very-strong {
+            background-color: #c3e6cb;
+            color: #155724;
+        }
+
+        /* Style for the password strength text */
+        #strength-text {
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,20 +67,78 @@
         {% endwith %}
         <form method="POST">
             {{ form.hidden_tag() }}
-            {{ form.username.label }} {{ form.username(size=32) }}<br>  <!-- Add username field -->
-            {{ form.email.label }} {{ form.email(size=32) }}<br>
-            {{ form.password.label }} {{ form.password(size=32) }}<br>
-            {{ form.confirm_password.label }} {{ form.confirm_password(size=32) }}<br>
-            {{ form.role.label }}
+            
+            <!-- Username field -->
+            <label for="username">{{ form.username.label }}</label>
+            {{ form.username(size=32) }}<br>
+            
+            <!-- Email field -->
+            <label for="email">{{ form.email.label }}</label>
+            {{ form.email(size=32) }}<br>
+            
+            <!-- Password field -->
+            <label for="password">{{ form.password.label }}</label>
+            {{ form.password(size=32, id="password") }}<br>
+
+            <!-- Password strength indicator -->
+            <div id="password-strength">
+                <span>Password Strength: </span><span id="strength-text"></span>
+            </div>
+            
+            <!-- Confirm password field -->
+            <label for="confirm_password">{{ form.confirm_password.label }}</label>
+            {{ form.confirm_password(size=32) }}<br>
+            
+            <!-- Role selection field -->
+            <label for="role">{{ form.role.label }}</label>
             <select name="role" id="role">
                 <option value="" disabled selected>Select your role</option>
                 {% for choice in form.role.choices %}
                     <option value="{{ choice[0] }}">{{ choice[1] }}</option>
                 {% endfor %}
             </select><br>
+            
+            <!-- Submit button -->
             {{ form.submit() }}
         </form>
         <p>Already have an account? <a href="{{ url_for('login') }}">Login here.</a></p>
     </div>
+
+    <script>
+        // Password strength checker
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const result = zxcvbn(password);
+
+            // Show password strength text
+            const strengthText = document.getElementById('strength-text');
+            const strengthBar = document.getElementById('password-strength');
+            strengthBar.style.display = 'block';
+
+            // Update strength level and apply styles based on score
+            switch(result.score) {
+                case 0:
+                    strengthText.textContent = 'Very Weak';
+                    strengthBar.className = 'very-weak';
+                    break;
+                case 1:
+                    strengthText.textContent = 'Weak';
+                    strengthBar.className = 'weak';
+                    break;
+                case 2:
+                    strengthText.textContent = 'Fair';
+                    strengthBar.className = 'fair';
+                    break;
+                case 3:
+                    strengthText.textContent = 'Strong';
+                    strengthBar.className = 'strong';
+                    break;
+                case 4:
+                    strengthText.textContent = 'Very Strong';
+                    strengthBar.className = 'very-strong';
+                    break;
+            }
+        });
+    </script>
 </body>
 </html>
