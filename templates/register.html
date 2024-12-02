@@ -51,6 +51,19 @@
             font-size: 12px;
             font-weight: bold;
         }
+
+        /* Custom alert style */
+        #password-alert {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -65,7 +78,7 @@
                 </ul>
             {% endif %}
         {% endwith %}
-        <form method="POST">
+        <form id="register-form" method="POST">
             {{ form.hidden_tag() }}
             
             <!-- Username field -->
@@ -99,8 +112,12 @@
             </select><br>
             
             <!-- Submit button -->
-            {{ form.submit() }}
+            {{ form.submit(id="submit-btn") }}
         </form>
+
+        <!-- Custom Password Alert -->
+        <div id="password-alert">Please choose a stronger password (strong or very strong).</div>
+
         <p>Already have an account? <a href="{{ url_for('login') }}">Login here.</a></p>
     </div>
 
@@ -137,6 +154,20 @@
                     strengthText.textContent = 'Very Strong';
                     strengthBar.className = 'very-strong';
                     break;
+            }
+        });
+
+        // Disable form submission if password is weak
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            const password = document.getElementById('password').value;
+            const result = zxcvbn(password);
+            if (result.score < 3) { // Only allow form submission if password is strong or very strong
+                event.preventDefault();
+                const passwordAlert = document.getElementById('password-alert');
+                passwordAlert.style.display = 'block'; // Show the custom alert message
+                setTimeout(function() {
+                    passwordAlert.style.display = 'none'; // Hide the alert after 3 seconds
+                }, 3000);
             }
         });
     </script>
